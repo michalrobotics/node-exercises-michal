@@ -47,5 +47,20 @@ yargs.command({
     }
 });
 
+yargs.command({
+    command: 'pet',
+    describe: 'Add a pet to joke author',
+    builder: {
+        name: {
+            describe: 'Author of joke',
+            demandOption: true,
+            type: 'string'
+        }
+    },
+    handler(argv) {
+        jokes.addPet(argv.name);
+    }
+});
+
 
 yargs.parse();

@@ -54,6 +54,20 @@ const searchJoke = (name) => {
     }
 }
 
+const addPet = (name) => {
+    const jokes = loadJokes();
+
+    const joke = jokes.find((joke) => joke.name.toLowerCase() === name.toLowerCase());
+
+    if (joke) {
+        joke.animal = chance.animal();
+        saveJokes(jokes);
+        console.log(`${joke.animal} added to ${name}!`);
+    } else {
+        console.log("No joke found under that name!");
+    }
+}
+
 const loadJokes = () => {
     try {
         const jokesBuffer = fs.readFileSync('jokes.json');
@@ -73,5 +87,6 @@ module.exports = {
     addJoke,
     deleteJoke,
     listJokes,
-    searchJoke
+    searchJoke,
+    addPet
 }
