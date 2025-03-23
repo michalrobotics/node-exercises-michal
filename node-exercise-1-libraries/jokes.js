@@ -5,9 +5,7 @@ const giveMeAJoke = require('give-me-a-joke');
 const addJoke = () => {
     const jokes = loadJokes();
 
-    console.log("adding");
     giveMeAJoke.getRandomDadJoke((joke) => {
-        console.log("joking");
         const name = chance.name();
         while (jokes.find((obj) => obj.name === name)) {
             console.log(name);
