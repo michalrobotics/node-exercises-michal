@@ -6,9 +6,8 @@ const addJoke = () => {
     const jokes = loadJokes();
 
     giveMeAJoke.getRandomDadJoke((joke) => {
-        const name = chance.name();
+        let name = chance.name();
         while (jokes.find((obj) => obj.name === name)) {
-            console.log(name);
             name = chance.name();
         }
         jokes.push({
