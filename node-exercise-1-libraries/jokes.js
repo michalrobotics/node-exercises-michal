@@ -23,7 +23,7 @@ const addJoke = () => {
 const deleteJoke = (name) => {
     const jokes = loadJokes();
 
-    const jokesToKeep = jokes.filter((joke) => joke.name !== name);
+    const jokesToKeep = jokes.filter((joke) => joke.name.toLowerCase() !== name.toLowerCase());
 
     if (jokes.length > jokesToKeep.length) {
         saveJokes(jokesToKeep);
@@ -45,7 +45,7 @@ const listJokes = () => {
 const searchJoke = (name) => {
     const jokes = loadJokes();
 
-    const joke = jokes.find((joke) => joke.name === name);
+    const joke = jokes.find((joke) => joke.name.toLowerCase() === name.toLowerCase());
 
     if (joke) {
         console.log(joke.joke);
@@ -70,8 +70,8 @@ const saveJokes = (jokes) => {
 }
 
 module.exports = {
-    addJoke: addJoke,
-    deleteJoke: deleteJoke,
-    listJokes: listJokes,
-    searchJoke: searchJoke
+    addJoke,
+    deleteJoke,
+    listJokes,
+    searchJoke
 }
