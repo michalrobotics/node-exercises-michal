@@ -16,6 +16,7 @@ const addJoke = () => {
             joke: joke
         });
         saveJokes(jokes);
+        console.log("Joke added!");
     });
 
 }
@@ -38,7 +39,7 @@ const listJokes = () => {
 
     console.log("Jokes")
     jokes.forEach((joke) => {
-        console.log(joke.joke);
+        console.log(`Joke by ${joke.name}: ${joke.joke}`);
     });
 }
 

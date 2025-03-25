@@ -11,7 +11,7 @@ yargs.command({
 
 yargs.command({
     command: 'delete',
-    describe: 'Delete a note',
+    describe: 'Delete a joke',
     builder: {
         name: {
             describe: 'Author of joke to delete',
@@ -34,7 +34,7 @@ yargs.command({
 
 yargs.command({
     command: 'search',
-    describe: 'Search note by author',
+    describe: 'Search joke by author',
     builder: {
         name: {
             describe: 'Author of joke',
