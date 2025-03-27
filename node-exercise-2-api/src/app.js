@@ -15,9 +15,7 @@ app.set('views', viewsPath);
 app.use(express.static(publicDirectoryPath));
 
 app.get('', (req, res) => {
-    res.render('index', {
-        name: 'something'
-    });
+    res.render('index');
 });
 
 app.get('/dictionary', (req, res) => {
