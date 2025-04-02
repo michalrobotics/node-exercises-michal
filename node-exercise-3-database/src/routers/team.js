@@ -46,7 +46,7 @@ router.patch('/teams/:id', async (req, res) => {
     }
 
     try {
-        const team = await Team.findByIdAndUpdate(req.params.id, req.body, {new: true, runValidators: true});
+        const team = await Team.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
 
         if (!team) {
             return res.status(404).send();
@@ -63,13 +63,57 @@ router.delete('/teams/:id', async (req, res) => {
         const team = await Team.findByIdAndDelete(req.params.id);
 
         if (!team) {
-            res.status(404).send();
+            return res.status(404).send();
         }
 
         res.send(team);
     } catch (e) {
         res.status(500).send();
     }
-})
+});
+
+router.get('/teams/leader/:name', async (req, res) => {
+    try {
+        const team = await Team.findOne({ name: req.params.name });
+
+        if (!team) {
+            return res.status(404).send();
+        }
+        res.send(team.leader);
+    } catch (e) {
+        res.status(500).send();
+    }
+});
+
+router.get('/teams/members/:name', async (req, res) => {
+    try {
+        const team = await Team.findOne({ name: req.params.name });
+
+        if (!team) {
+            return res.status(404).send();
+        }
+
+        res.send(team.members.length);
+    } catch (e) {
+        res.status(500).send();
+    }
+});
+
+router.get('/teams/member/:id', async (req, res) => {
+    const _id = req.params.id;
+    try {
+        const teams = await Team.find({});
+        
+        const team = teams.find((team) => team.members.includes(_id));
+
+        if (!team) {
+            return res.status(404).send();
+        }
+
+        res.send(team.name);
+    } catch (e) {
+        res.status(500).send();
+    }
+});
 
 module.exports = router;

@@ -1,5 +1,6 @@
 const express = require('express');
 const Member = require('../models/member');
+const Team = require('../models/team');
 const router = new express.Router();
 
 router.post('/members', async (req, res) => {
@@ -46,7 +47,7 @@ router.patch('/members/:id', async (req, res) => {
     }
 
     try {
-        const member = await Member.findByIdAndUpdate(req.params.id, req.body, {new: true, runValidators: true});
+        const member = await Member.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
 
         if (!member) {
             return res.status(404).send();
@@ -63,13 +64,31 @@ router.delete('/members/:id', async (req, res) => {
         const member = await Member.findByIdAndDelete(req.params.id);
 
         if (!member) {
-            res.status(404).send();
+            return res.status(404).send();
+        }
+
+        const teams = await Team.find({});
+
+        let index;
+        const team = teams.find((team) => {
+            index = team.members.findIndex((member) => member === req.params.id);
+            if (index >= 0) {
+                return true;
+            }
+            return false;
+        });
+
+        if (team) {
+            const updatedMembers = team.members;
+            updatedMembers.splice(index, 1);
+
+            await Team.updateOne({ _id: team.id }, { members: updatedMembers }, { new: true, runValidators: true });
         }
 
         res.send(member);
     } catch (e) {
         res.status(500).send();
     }
-})
+});
 
 module.exports = router;
