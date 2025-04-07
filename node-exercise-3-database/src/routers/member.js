@@ -1,6 +1,7 @@
 const express = require('express');
 const Member = require('../models/member');
 const Team = require('../models/team');
+const auth = require('../middleware/auth');
 const router = new express.Router();
 
 router.post('/members', async (req, res) => {
@@ -8,9 +9,20 @@ router.post('/members', async (req, res) => {
 
     try {
         await member.save();
-        res.status(201).send(member);
+        const token = await member.generateAuthToken();
+        res.status(201).send({ member, token });
     } catch (e) {
         res.status(400).send(e);
+    }
+});
+
+router.post('/members/login', async (req, res) => {
+    try {
+        const member = await Member.findByCredentials(req.body.idfNumber, req.body.password);
+        const token = await member.generateAuthToken();
+        res.send({ member, token });
+    } catch (e) {
+        res.status(400).send();
     }
 });
 
@@ -23,7 +35,7 @@ router.get('/members', async (req, res) => {
     }
 });
 
-router.get('/members/:id', async (req, res) => {
+router.get('/members/:id', auth, async (req, res) => {
     try {
         const member = await Member.findById(req.params.id);
 
@@ -37,7 +49,7 @@ router.get('/members/:id', async (req, res) => {
     }
 });
 
-router.patch('/members/:id', async (req, res) => {
+router.patch('/members/:id', auth, async (req, res) => {
     const updates = Object.keys(req.body);
     const allowedUpdates = ['name', 'idfNumber', 'email', 'isOpenBase'];
     const isValidOperation = updates.every((update) => allowedUpdates.includes(update));
@@ -72,17 +84,15 @@ router.delete('/members/:id', async (req, res) => {
         let index;
         const team = teams.find((team) => {
             index = team.members.findIndex((member) => member === req.params.id);
-            if (index >= 0) {
-                return true;
-            }
-            return false;
+
+            return (index >= 0 ? true : false);
         });
 
         if (team) {
             const updatedMembers = team.members;
             updatedMembers.splice(index, 1);
 
-            await Team.updateOne({ _id: team.id }, { members: updatedMembers }, { new: true, runValidators: true });
+            await Team.updateOne({ _id: team.id }, { members: updatedMembers }, { runValidators: true });
         }
 
         res.send(member);

@@ -9,10 +9,6 @@ app.use(express.json());
 app.use(teamRouter);
 app.use(memberRouter);
 
-app.get('', (req, res) => {
-    res.send('This is working just fine.');
-});
-
 app.listen(8000, () => {
     console.log("Server up on port 8000");
 });
