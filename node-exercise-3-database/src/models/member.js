@@ -37,6 +37,10 @@ const memebrSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Team'
     },
+    pazam: {
+        type: Number,
+        default: 0
+    },
     tokens: [{
         token: {
             type: String,
@@ -46,7 +50,6 @@ const memebrSchema = new mongoose.Schema({
 });
 
 memebrSchema.pre("save", async function (next) {
-    console.log("here");
     const member = this;
 
     if (member.isModified('password')) {

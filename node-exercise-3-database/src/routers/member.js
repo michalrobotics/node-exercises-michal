@@ -1,4 +1,5 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const Member = require('../models/member');
 const Team = require('../models/team');
 const auth = require('../middleware/auth');
@@ -26,32 +27,41 @@ router.post('/members/login', async (req, res) => {
     }
 });
 
-router.get('/members', async (req, res) => {
+router.post('/members/logout', auth, async (req, res) => {
     try {
-        const members = await Member.find({});
-        res.send(members);
+        req.member.tokens = req.member.tokens.filter((token) => token.token !== req.token);
+        await req.member.save();
+
+        res.send();
     } catch (e) {
         res.status(500).send();
     }
 });
 
-router.get('/members/:id', auth, async (req, res) => {
+router.post('/members/logoutall', auth, async (req, res) => {
     try {
-        const member = await Member.findById(req.params.id);
+        req.member.tokens = [];
+        await req.member.save();
+        res.send();
+    } catch (e) {
+        res.status(500).send();
+    }
+});
 
-        if (!member) {
-            return res.status(404).send();
-        }
-
-        res.send(member);
+router.get('/members/me', auth, async (req, res) => {
+    try {
+        res.send(req.member);
     } catch (e) {
         res.status(500).send();
     }
 });
 
 router.patch('/members/:id', auth, async (req, res) => {
+    if (!req.member.isLeader) {
+        return res.status(401).send({ error: 'Only leaders can update data' });
+    }
     const updates = Object.keys(req.body);
-    const allowedUpdates = ['name', 'idfNumber', 'email', 'isOpenBase'];
+    const allowedUpdates = ['name', 'idfNumber', 'password', 'isLeader', 'team', 'pazam'];
     const isValidOperation = updates.every((update) => allowedUpdates.includes(update));
 
     if (!isValidOperation) {
@@ -59,7 +69,38 @@ router.patch('/members/:id', auth, async (req, res) => {
     }
 
     try {
-        const member = await Member.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+        
+        const member = await Member.findById(req.params.id);
+        
+        if (updates.includes('team')) {
+            const team = await Team.findOne({ name: req.body.team });
+            if (!team) {
+                return res.status(400).send({  error: 'No such team' });
+            }
+
+            if (member.isLeader) {
+                return res.status(403).send({ error: 'Leader cannot switch teams' });
+            }
+            req.body.team = team._id;
+        }
+
+        await member.updateOne(req.params.id, req.body, { new: true, runValidators: true });
+        if (!member) {
+            return res.status(404).send();
+        }
+
+        res.send(member);
+    } catch (e) {
+        res.status(500).send();
+    }
+});
+
+router.delete('/members/:id', auth, async (req, res) => {
+    if (!req.member.isLeader) {
+        return res.status(401).send({ error: 'Only leaders can update data' });
+    }
+    try {
+        req.member.findOne(req.params.id);
 
         if (!member) {
             return res.status(404).send();
@@ -71,31 +112,23 @@ router.patch('/members/:id', auth, async (req, res) => {
     }
 });
 
-router.delete('/members/:id', async (req, res) => {
+
+router.get('/members/:idfNum/team', async (req, res) => {
+    const idfNumber = req.params.idfNum;
     try {
-        const member = await Member.findByIdAndDelete(req.params.id);
+        const member = await Member.findOne({ idfNumber });
 
         if (!member) {
             return res.status(404).send();
         }
 
-        const teams = await Team.find({});
+        await member.populate('team');
 
-        let index;
-        const team = teams.find((team) => {
-            index = team.members.findIndex((member) => member === req.params.id);
-
-            return (index >= 0 ? true : false);
-        });
-
-        if (team) {
-            const updatedMembers = team.members;
-            updatedMembers.splice(index, 1);
-
-            await Team.updateOne({ _id: team.id }, { members: updatedMembers }, { runValidators: true });
+        if (!member.team) {
+            return res.status(404).send('Member not in a team');
         }
 
-        res.send(member);
+        res.send(member.team.name);
     } catch (e) {
         res.status(500).send();
     }

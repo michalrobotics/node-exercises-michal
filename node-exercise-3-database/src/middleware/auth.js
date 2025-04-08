@@ -11,10 +11,6 @@ const auth = async (req, res, next) => {
             throw new Error();
         }
 
-        if (req.method !== 'GET' && !member.isLeader) {
-            throw new Error();
-        }
-
         req.token = token;
         req.member = member;
         next();
