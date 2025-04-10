@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-const memebrSchema = new mongoose.Schema({
+const memberSchema = new mongoose.Schema({
     name: {
         type: String,
         required: true,
@@ -49,7 +49,7 @@ const memebrSchema = new mongoose.Schema({
     }]
 });
 
-memebrSchema.pre("save", async function (next) {
+memberSchema.pre("save", async function (next) {
     const member = this;
 
     if (member.isModified('password')) {
@@ -59,7 +59,17 @@ memebrSchema.pre("save", async function (next) {
     next();
 });
 
-memebrSchema.methods.generateAuthToken = async function () {
+memberSchema.methods.toJSON = function () {
+    const member = this;
+    const memberObject = member.toObject();
+
+    delete memberObject.password;
+    delete memberObject.tokens;
+
+    return memberObject;
+}
+
+memberSchema.methods.generateAuthToken = async function () {
     const member = this;
 
     const token = jwt.sign({ _id: member._id.toString() }, 'ihaveboobies');
@@ -70,7 +80,7 @@ memebrSchema.methods.generateAuthToken = async function () {
     return token;
 }
 
-memebrSchema.statics.findByCredentials = async (idfNumber, password) => {
+memberSchema.statics.findByCredentials = async (idfNumber, password) => {
     const member = await Member.findOne({ idfNumber });
 
     if (!member) {
@@ -86,6 +96,6 @@ memebrSchema.statics.findByCredentials = async (idfNumber, password) => {
     return member;
 }
 
-const Member = mongoose.model('Member', memebrSchema);
+const Member = mongoose.model('Member', memberSchema);
 
 module.exports = Member;

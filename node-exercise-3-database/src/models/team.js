@@ -17,8 +17,8 @@ teamSchema.virtual('members', {
 
 teamSchema.pre('deleteOne', { document: true, query: false }, async function (next) {
     const team = this;
-    const members = await Member.find({ team: team._id });
-    members.forEach((member) => {
+    await team.populate('members');
+    team.members.forEach((member) => {
         member.team = undefined;
         member.save();
     });
