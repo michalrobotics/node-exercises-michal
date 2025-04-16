@@ -70,8 +70,6 @@ router.get('/members', auth, async (req, res) => {
     }
 
     try {
-        console.log(match);
-
         const members = await Member.find(match).sort(sort).limit(parseInt(req.query.limit)).skip(req.query.skip);
 
         res.send(members);
@@ -81,7 +79,23 @@ router.get('/members', auth, async (req, res) => {
 });
 
 router.get('/members/leaders', async (req, res) => {
-    
+    const sort = {};
+
+    if (req.query.sortBy) {
+        const parts = req.query.sortBy.split(':');
+        sort[parts[0]] = parts[1] === 'desc' ? -1 : 1;
+    }
+    try {
+        const teams = await Team.find().sort(sort);
+        const leaders = [];
+        teams.forEach(async (team) => {
+            await team.populate('members');
+            leaders.push(team.members.find((member) => member.isLeader));
+        });
+        res.send(leaders);
+    } catch (e) {
+        res.status(codes.INTERNAL_SERVER_ERROR).send();
+    }
 });
 
 router.patch('/members/:id', auth, async (req, res) => {
